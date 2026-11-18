@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/* Färgerna används av hela Studyflow och ger den ljusa, lekfulla känslan. */
+:root {
+  --background: #f7f8fc;
+  --foreground: #26364d;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}

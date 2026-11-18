@@ -1,0 +1,60 @@
+name: Build and deploy Studyflow
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Hämtar projektet från GitHub.
+      - name: Hämta källkod
+        uses: actions/checkout@v4
+
+      # Installerar samma Node-version som används i Dockerfile.
+      - name: Installera Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installera beroenden
+        run: npm ci
+
+      - name: Kontrollera kodkvalitet
+        run: npm run lint
+
+      - name: Bygg Next.js-applikationen
+        run: npm run build
+
+      - name: Bygg Docker-image
+        run: docker build -t studyflow:${{ github.sha }} .
+
+      # Secret ska läggas till i GitHub, aldrig direkt i denna fil.
+      - name: Kontrollera Render secret
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::error::RENDER_DEPLOY_HOOK_URL saknas."
+            exit 1
+          fi
+
+      - name: Starta Render-deploy
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --request POST \
+            "$RENDER_DEPLOY_HOOK_URL"
+
+        
