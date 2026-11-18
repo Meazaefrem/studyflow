@@ -1,31 +1,35 @@
 "use client";
 
-import {
-  formatDeadline,
-  statusLabels,
-} from "./lib/tasks";
+import { Sidebar } from "./components/Sidebar";
+import { formatDeadline, statusLabels } from "./lib/tasks";
 import { useTasks } from "./lib/use-tasks";
 
 export default function Home() {
-  // Dashboarden använder samma lista som uppgiftssidan.
+  // Dashboarden använder samma uppgiftslista som sidan "Uppgifter".
   const { tasks, setTasks } = useTasks();
   const assignment = tasks[0];
 
+  const completedTasks = tasks.filter((task) => task.status === "done");
+  const openTasks = tasks.filter((task) => task.status !== "done");
+  const progress = tasks.length
+    ? Math.round((completedTasks.length / tasks.length) * 100)
+    : 0;
+
   if (!assignment) {
-    return <p>Ingen uppgift hittades.</p>;
+    return (
+      <main className="grid min-h-screen place-items-center bg-[#f7f8fc] p-6 text-[#26364d]">
+        <p>Ingen uppgift hittades.</p>
+      </main>
+    );
   }
 
   const isCompleted = assignment.status === "done";
 
-  // Knappen på dashboarden växlar uppgiften mellan klar och inte klar.
   function toggleAssignment() {
     setTasks((currentTasks) =>
       currentTasks.map((task) =>
         task.id === assignment.id
-          ? {
-              ...task,
-              status: isCompleted ? "upcoming" : "done",
-            }
+          ? { ...task, status: isCompleted ? "upcoming" : "done" }
           : task,
       ),
     );
@@ -33,50 +37,8 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#f7f8fc] text-[#26364d]">
-      <div className="mx-auto flex min-h-screen max-w-[1500px]">
-        <aside className="hidden w-[220px] flex-col border-r border-[#e6e9f1] bg-[#fffdf8] p-6 lg:flex">
-          <div className="flex items-center gap-3 text-lg font-extrabold tracking-tight">
-            <div className="grid size-9 rotate-[-5deg] place-items-center rounded-xl rounded-bl-md bg-[#5d72ee] text-xl text-white">
-              <span className="rotate-[5deg]">✦</span>
-            </div>
-            Studyflow
-          </div>
-
-          <nav className="mt-10 space-y-2" aria-label="Huvudnavigation">
-            <button
-              className="flex min-h-11 w-full items-center gap-3 rounded-xl bg-[#e4e8ff] px-3 text-left text-sm font-bold text-[#4052bc]"
-              type="button"
-            >
-              <span>⌂</span>
-              Översikt
-            </button>
-
-            <button
-              className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm text-[#8591a5]"
-              type="button"
-              disabled
-            >
-              <span>✓</span>
-              Uppgifter
-            </button>
-
-            <button
-              className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm text-[#8591a5]"
-              type="button"
-              disabled
-            >
-              <span>▦</span>
-              Kalender
-            </button>
-          </nav>
-
-          <div className="mt-auto rounded-2xl bg-[#fff3cb] p-4 text-xs leading-relaxed text-[#84621c]">
-            <strong className="mb-1 block text-sm text-[#26364d]">
-              Veckans lilla mål
-            </strong>
-            Börja med din CI/CD-uppgift och ta ett steg i taget.
-          </div>
-        </aside>
+      <div className="mx-auto flex min-h-screen max-w-[1500px] flex-col lg:flex-row">
+        <Sidebar />
 
         <section className="min-w-0 flex-1 p-5 sm:p-8 lg:p-12">
           <header className="mb-7 flex items-center justify-between gap-4">
@@ -89,20 +51,11 @@ export default function Home() {
               </h1>
             </div>
 
-            <div className="flex items-center gap-3">
-              <button
-                className="rounded-xl bg-[#5d72ee] px-4 py-3 text-xs font-bold text-white shadow-lg shadow-[#5d72ee]/20"
-                type="button"
-              >
-                + Ny uppgift
-              </button>
-
-              <div
-                className="grid size-10 place-items-center rounded-full bg-[#ffe4de] text-xs font-extrabold text-[#b25648]"
-                aria-label="Meaza"
-              >
-                MA
-              </div>
+            <div
+              className="grid size-10 place-items-center rounded-full bg-[#ffe4de] text-xs font-extrabold text-[#b25648]"
+              aria-label="Meaza"
+            >
+              MA
             </div>
           </header>
 
@@ -132,9 +85,9 @@ export default function Home() {
           {/* Snabb överblick över uppgiftens status. */}
           <section className="mb-5 grid gap-4 sm:grid-cols-3">
             <div className="rounded-2xl bg-[#c7ecd8] p-5">
-              <p className="text-xs font-bold text-[#72817a]">Pågående</p>
+              <p className="text-xs font-bold text-[#72817a]">Aktiva uppgifter</p>
               <p className="mt-2 text-3xl font-extrabold tracking-[-0.07em]">
-                {isCompleted ? 0 : 1}
+                {openTasks.length}
               </p>
               <p className="mt-1 text-xs text-[#26364d]/60">
                 uppgift att fokusera på
@@ -142,11 +95,9 @@ export default function Home() {
             </div>
 
             <div className="rounded-2xl bg-[#fff3cb] p-5">
-              <p className="text-xs font-bold text-[#72817a]">
-                Klart denna vecka
-              </p>
+              <p className="text-xs font-bold text-[#72817a]">Klara uppgifter</p>
               <p className="mt-2 text-3xl font-extrabold tracking-[-0.07em]">
-                {isCompleted ? 1 : 0}
+                {completedTasks.length}
               </p>
               <p className="mt-1 text-xs text-[#26364d]/60">
                 uppgift färdig
@@ -154,14 +105,12 @@ export default function Home() {
             </div>
 
             <div className="rounded-2xl bg-[#ffe4de] p-5">
-              <p className="text-xs font-bold text-[#72817a]">
-                Nästa deadline
-              </p>
+              <p className="text-xs font-bold text-[#72817a]">Nästa deadline</p>
               <p className="mt-2 text-2xl font-extrabold tracking-[-0.07em]">
                 {formatDeadline(assignment.deadline)}
               </p>
               <p className="mt-1 text-xs text-[#26364d]/60">
-                CI/CD-uppgiften
+                {assignment.title}
               </p>
             </div>
           </section>
@@ -203,9 +152,7 @@ export default function Home() {
 
                     <p
                       className={`mt-2 grid size-7 place-items-center text-sm font-extrabold ${
-                        index === 5
-                          ? "rounded-lg bg-[#5d72ee] text-white"
-                          : ""
+                        index === 5 ? "rounded-lg bg-[#5d72ee] text-white" : ""
                       }`}
                     >
                       {date}
@@ -231,9 +178,7 @@ export default function Home() {
 
             <section className="rounded-2xl border border-[#e6e9f1] bg-white p-5">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-extrabold tracking-tight">
-                  Kom ihåg
-                </h2>
+                <h2 className="text-lg font-extrabold tracking-tight">Kom ihåg</h2>
                 <span className="text-xl text-[#e8b866]">☀</span>
               </div>
 
@@ -248,15 +193,13 @@ export default function Home() {
               <div className="mt-6">
                 <div className="mb-2 flex justify-between text-xs text-[#8591a5]">
                   <span>Din progress</span>
-                  <strong className="text-[#26364d]">
-                    {isCompleted ? "100%" : "0%"}
-                  </strong>
+                  <strong className="text-[#26364d]">{progress}%</strong>
                 </div>
 
                 <div className="h-2 overflow-hidden rounded-full bg-[#e4e8ff]">
                   <span
                     className="block h-full rounded-full bg-[#5d72ee] transition-all"
-                    style={{ width: isCompleted ? "100%" : "0%" }}
+                    style={{ width: `${progress}%` }}
                   />
                 </div>
               </div>
@@ -303,7 +246,7 @@ export default function Home() {
                   </h3>
 
                   <span className="rounded-lg bg-[#ded8ff] px-2 py-1 text-[10px] font-bold text-[#6257a6]">
-                    Software life cycle management
+                    {assignment.course.replace("JSU25S - ", "")}
                   </span>
                 </div>
 
